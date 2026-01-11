@@ -18,6 +18,8 @@ export function DailyView() {
     const today = format(new Date(), 'yyyy-MM-dd');
     const displayDate = format(new Date(), 'EEEE, MMMM do');
 
+    const isHex = (color: string) => color.startsWith('#');
+
     // Filter Active Tasks
     const activeTasks = tasks.filter(t => t.active);
 
@@ -76,7 +78,10 @@ export function DailyView() {
                     return (
                         <div key={group.id}>
                             <div className="flex items-center gap-2 mb-3">
-                                <div className={clsx("w-3 h-3 rounded-full", group.color)} />
+                                <div
+                                    className={clsx("w-3 h-3 rounded-full", !isHex(group.color) && group.color)}
+                                    style={isHex(group.color) ? { backgroundColor: group.color } : undefined}
+                                />
                                 <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">{group.name}</h2>
                             </div>
 
