@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { format } from 'date-fns';
-import { Check, Plus, Trash2, Calendar as CalendarIcon, X, AlertCircle } from 'lucide-react';
+import { Check, Plus, Trash2, Calendar as CalendarIcon, X, AlertCircle, Repeat, CalendarCheck } from 'lucide-react';
 import clsx from 'clsx';
+import type { Frequency } from '../types';
 
 
 export function DailyView() {
@@ -14,6 +15,7 @@ export function DailyView() {
     const [isAdding, setIsAdding] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [selectedGroupId, setSelectedGroupId] = useState('');
+    const [taskFrequency, setTaskFrequency] = useState<Frequency>('One-time');
 
     const today = format(new Date(), 'yyyy-MM-dd');
     const displayDate = format(new Date(), 'EEEE, MMMM do');
@@ -21,7 +23,13 @@ export function DailyView() {
     const isHex = (color: string) => color.startsWith('#');
 
     // Filter Active Tasks
-    const activeTasks = tasks.filter(t => t.active);
+    const activeTasks = tasks.filter(t => {
+        if (!t.active) return false;
+        if (t.frequency === 'Daily') return true;
+        // One-time tasks: only show if created today
+        const createdDate = format(new Date(t.createdAt), 'yyyy-MM-dd');
+        return createdDate === today;
+    });
 
     // Calculate Progress
     const todayStatuses = dailyStatuses.filter(s => s.date === today && s.completed);
@@ -39,9 +47,10 @@ export function DailyView() {
         addTask({
             title: newTaskTitle,
             groupId: selectedGroupId,
-            frequency: 'Daily', // Default for V1
+            frequency: taskFrequency,
         });
         setNewTaskTitle('');
+        setTaskFrequency('One-time'); // Reset to default
         setIsAdding(false);
     };
 
@@ -148,9 +157,10 @@ export function DailyView() {
             {/* FAB */}
             <button
                 onClick={() => setIsAdding(true)}
-                className="fixed right-6 bottom-24 w-14 h-14 bg-slate-900 text-white rounded-full shadow-lg shadow-slate-900/20 flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-40"
+                className="mt-6 w-full py-4 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 font-medium flex items-center justify-center gap-2 hover:border-blue-400 hover:text-blue-500 transition-all"
             >
-                <Plus size={24} />
+                <Plus size={20} />
+                Create New Task
             </button>
 
             {/* Add Task Modal */}
@@ -202,6 +212,43 @@ export function DailyView() {
                                     className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 placeholder:text-slate-400"
                                     autoFocus
                                 />
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-slate-500 mb-2">Frequency</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setTaskFrequency('One-time')}
+                                        className={clsx(
+                                            "flex items-center justify-center gap-2 py-3 rounded-xl border transition-all text-sm font-medium",
+                                            taskFrequency === 'One-time'
+                                                ? "bg-slate-900 text-white border-slate-900"
+                                                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                                        )}
+                                    >
+                                        <CalendarCheck size={16} />
+                                        Today Only
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTaskFrequency('Daily')}
+                                        className={clsx(
+                                            "flex items-center justify-center gap-2 py-3 rounded-xl border transition-all text-sm font-medium",
+                                            taskFrequency === 'Daily'
+                                                ? "bg-slate-900 text-white border-slate-900"
+                                                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                                        )}
+                                    >
+                                        <Repeat size={16} />
+                                        Daily
+                                    </button>
+                                </div>
+                                <p className="mt-2 text-xs text-slate-400">
+                                    {taskFrequency === 'One-time'
+                                        ? "Disappears after today."
+                                        : "Reappears every day."}
+                                </p>
                             </div>
 
                             <button
