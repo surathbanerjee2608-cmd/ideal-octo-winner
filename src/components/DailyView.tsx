@@ -135,6 +135,9 @@ export function DailyView() {
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
+                                            <div className="absolute bottom-2 right-3 text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                                                {task.frequency === 'Daily' ? 'Daily' : 'Today Only'}
+                                            </div>
                                         </div>
                                     );
                                 })}
